@@ -12,111 +12,87 @@ fish dies (i.e., it disappears).
 """
 import random
 import time
+from pytermgui import tim
 
 
-class Animal:
-    def __init__(self, x):
-        self.x = x
-
-    def rand_move(self):
-        movement = random.choice([-1, 1])
-        return self.x + movement
-
-    def move(self, x):
-        self.x = x
-
-
-class Bear(Animal):
-    def __init__(self, x):
-        super().__init__(x)
+class Bear:
+    "Bear Class"
 
     def __repr__(self) -> str:
-        return f"Bear at {self.x}"
+        return f"[red bold]Bear[/bold /fg]"
 
     def ret_type(self):
         return "Bear"
 
 
-class Fish(Animal):
-    def __init__(self, x):
-        super().__init__(x)
+class Fish:
+    "Fish Class"
 
     def __repr__(self) -> str:
-        return f"Fish at {self.x}"
+        return f"[green bold]Fish[/bold /fg]"
 
     def ret_type(self):
         return "Fish"
 
 
-class Array:
+class Ecosystem:
+    "Ecosystem class"
+
     def __init__(self) -> None:
         self.blocks = 20
-        self.bears = 2
-        self.fishes = 5
+        self.bears = 5
+        self.fishes = 10
         self.array = self.create_array()
-
-        self.play()
 
     def create_array(self):
         arr = []
 
-        def create_bear(i):
-            if self.bears != 0:
-                self.bears = self.bears - 1
-                return Bear(i)
+        for _ in range(0, self.bears):
+            arr.append(Bear())
 
-        def create_fish(i):
-            if self.fishes != 0:
-                self.fishes = self.fishes - 1
-                return Fish(i)
+        for _ in range(0, self.fishes):
+            arr.append(Fish())
 
-        def return_none(i):
-            return None
+        for _ in range(self.fishes + self.bears, self.blocks):
+            arr.append(None)
 
-        for i in range(self.blocks):
-            fun = random.choice([create_bear, create_fish, return_none])
-            arr.append(fun(i))
+        random.shuffle(arr)
 
         return arr
 
     def rand_move(self):
         choice = random.choice(self.array)
         ind = self.array.index(choice)
+
         if choice is not None:
-            x = choice.rand_move()
-            if x < 0 or x > self.blocks - 1:
-                pass
-
-            else:
+            mov = random.choice([-1, +1])
+            if mov + ind > 0 and mov + ind < self.blocks:
                 if choice.ret_type() == "Fish":
-                    if self.array[x].ret_type == "Bear":
-                        self.array[choice] = None
+                    if self.array[mov + ind] is not None:
+                        if self.array[mov + ind].ret_type() == "Fish":
+                            val = self.populate()
+                            self.array[val] = Fish()
 
-                    elif self.array[x].ret_type == "Fish":
-                        val = self.populate()
-                        self.array[val] = Fish(val)
-                        self.array[ind] = None
-
-                    else:
-                        choice.move(x)
-                        self.array[ind] = None
-                        self.array[x] = choice
-
-                if choice.ret_type() == "Bear":
-                    if self.array[x].ret_type() == "Fish":
-                        self.array[x] = choice
-                        self.array[ind] = None
-                        choice.move(x)
-
-                    if self.array[x].ret_type() == "Bear":
-                        val = self.populate()
-                        self.array[val] = Bear(val)
-                        self.array[ind] = None
+                        elif self.array[mov + ind].ret_type() == "Bear":
+                            self.array[ind] = None
 
                     else:
-                        choice.move(x)
-                        self.array[ind] = None
-                        self.array[x] = choice
+                        self.array[mov + ind], self.array[ind] = Fish(), None
+
+                elif choice.ret_type() == "Bear":
+                    if self.array[mov + ind] is not None:
+                        if self.array[mov + ind].ret_type() == "Bear":
+                            val = self.populate()
+                            self.array[val] = Bear()
+
+                        elif self.array[mov + ind].ret_type() == "Fish":
+                            self.array[ind + mov], self.array[ind] = (
+                                self.array[ind],
+                                None,
+                            )
+
+                    else:
+                        self.array[mov + ind], self.array[ind] = Bear(), None
 
     def populate(self):
         arr = []
@@ -129,9 +105,28 @@ class Array:
 
     def play(self):
         for _ in range(40):
-            print(self.array)
+            tim.print(self.array)
             self.rand_move()
             time.sleep(0.1)
 
+        self.calc_population()
 
-Array()
+    def calc_population(self):
+        bears = 0
+        fishes = 0
+        for i in self.array:
+            if i is None:
+                pass
+            elif isinstance(i, Bear):
+                bears += 1
+            elif isinstance(i, Fish):
+                fishes += 1
+
+        print("Population:")
+        print(f"Initial Fishes: {self.fishes}")
+        print(f"Initial Bears: {self.bears}")
+        print(f"Current Fishes: {fishes}")
+        print(f"Current Bears: {bears}")
+
+
+Ecosystem().play()

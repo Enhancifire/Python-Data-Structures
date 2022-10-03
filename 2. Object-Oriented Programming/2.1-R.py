@@ -1,5 +1,4 @@
 """Give 3 Examples of Life Critical Software Applications"""
-
 """
 Sol:
     1. Aeroplanes
